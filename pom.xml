@@ -1,0 +1,112 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>akka.test</groupId>
+    <artifactId>akkaminimal</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <scala.version>2.8.1</scala.version>
+        <akka.version>1.0-RC6</akka.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>akka.repository</id>
+            <name>Akka Maven Repository</name>
+            <url>http://akka.io/repository</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>scala-tools.org</id>
+            <name>Scala-Tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>se.scalablesolutions.akka</groupId>
+            <artifactId>akka-actor</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>se.scalablesolutions.akka</groupId>
+            <artifactId>akka-kernel</artifactId>
+            <version>${akka.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>se.scalablesolutions.akka</groupId>
+                    <artifactId>akka-spring</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>se.scalablesolutions.akka</groupId>
+                    <artifactId>akka-jta</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>se.scalablesolutions.akka</groupId>
+                    <artifactId>akka-persistence</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/scala</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <version>2.15.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <args>
+                                <arg>-make:transitive</arg>
+                                <arg>-dependencyfile</arg>
+                                <arg>${project.build.directory}/.scala_dependencies</arg>
+                            </args>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>package</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <dependencyfilesets prefix="mydeps."/>
+                                <mkdir dir="target/runtime/lib"/>
+                                <copy todir="target/runtime/lib" flatten="true">
+                                  <fileset refid="mydeps.maven.project.dependencies"/>
+                                </copy>
+                                <mkdir dir="target/runtime/deploy"/>
+                                <move file="target/${project.artifactId}-${project.version}.jar" todir="target/runtime/deploy" />
+                                <mkdir dir="target/runtime/config"/>
+                                <copy todir="target/runtime/config">
+                                    <fileset dir="src/main/config" includes="*.*" />
+                                </copy>
+                                <copy file="scripts/start_akka.bat" todir="target/runtime" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
